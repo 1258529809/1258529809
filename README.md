@@ -176,9 +176,9 @@ $$
 
 Model 1 最终用于信用评分的是一个分类器：
 
-$
+$$
 \boxed{q_\phi(y\mid x)}
-$
+$$
 
 其中：
 
@@ -188,26 +188,26 @@ $
 
 分类器通过 Softmax 同时输出两个类别的概率，而不是分别建立两个分类器：
 
-$
+$$
 q_\phi(y\mid x)
 =
 \begin{bmatrix}
 q_\phi(y=0\mid x) &
 q_\phi(y=1\mid x)
 \end{bmatrix}
-$
+$$
 
 例如：
 
-$
+$$
 q_\phi(y\mid x)=[0.82,0.18]
-$
+$$
 
 如果 $y=1$ 表示违约，那么预测违约概率为 $q_\phi(y=1\mid x)=0.18$，预测类别则是：
 
-$
+$$
 \hat y=\arg\max_y q_\phi(y\mid x)
-$
+$$
 
 因此需要区分：Model 1 只有一个分类器、存在有标签和无标签两条训练路径，并输出两个类别概率。两条路径共同更新同一个分类器。
 
@@ -215,7 +215,7 @@ $
 
 在作者公开的 paper 数据配置下，分类器输入7个特征，包含一个有70个神经元的隐藏层：
 
-$
+$$
 \boxed{
 x\in\mathbb R^7
 \rightarrow
@@ -229,25 +229,25 @@ x\in\mathbb R^7
 \rightarrow
 \operatorname{Softmax}
 }
-$
+$$
 
 张量维度为：
 
-$
+$$
 (B,7)\rightarrow(B,70)\rightarrow(B,2)
-$
+$$
 
 其中 $B$ 是 minibatch 大小。前向计算为：
 
-$
+$$
 h=\operatorname{softplus}(xW_1+b_1)
-$
+$$
 
-$
+$$
 q_\phi(y\mid x)
 =
 \operatorname{softmax}(hW_2+b_2)
-$
+$$
 
 作者公开配置的 Dropout 比例为 $0.01$。
 
@@ -262,9 +262,9 @@ $
 
 参数标量总数为：
 
-$
+$$
 7\times70+70+70\times2+2=702
-$
+$$
 
 因此应当区分：
 
@@ -279,7 +279,7 @@ Softplus、Softmax、Dropout 和损失函数参与计算，但它们本身没有
 
 损失函数不会直接求出最优参数，MLP 也不会脱离损失函数自动计算参数。完整学习过程为：
 
-$
+$$
 \boxed{
 \text{前向计算}
 \rightarrow
@@ -289,7 +289,7 @@ $
 \rightarrow
 \text{Adam更新参数}
 }
-$
+$$
 
 | 环节 | 作用 |
 |---|---|
@@ -300,7 +300,7 @@ $
 
 分类器的四个参数全部通过这一过程学习：
 
-$
+$$
 \mathcal L
 \rightarrow
 \left\{
@@ -311,7 +311,7 @@ $
 \right\}
 \rightarrow
 \text{Adam更新}
-$
+$$
 
 反向传播只负责计算梯度，真正修改参数的是优化器。
 
@@ -319,24 +319,24 @@ $
 
 有标签客户同时具有 $x$ 和真实标签 $y$。分类器通过交叉熵获得直接的监督信号：
 
-$
+$$
 \mathcal L_{\mathrm{CE}}
 =
 -\sum_k y_k\log q_\phi(y=k\mid x)
-$
+$$
 
 作者实现中的有标签生成项不依赖分类器输出，因此对分类器而言，有标签路径的直接梯度主要来自交叉熵。
 
 被拒绝客户只有特征 $x$，没有真实标签，不能计算监督交叉熵。模型分别假设 $y=0$ 和 $y=1$，计算对应的生成损失，再由分类概率加权：
 
-$
+$$
 \mathcal J_u(x)
 =
 \sum_y
 q_\phi(y\mid x)\mathcal L_{\mathrm{gen}}(x,y)
 -
 H\!\left(q_\phi(y\mid x)\right)
-$
+$$
 
 因为 $q_\phi(y\mid x)$ 出现在无标签目标中，所以梯度能够传回分类器的 $W_1,b_1,W_2,b_2$。这就是无标签 rejected 数据能够影响分类器训练的原因。
 
@@ -362,9 +362,9 @@ x → 重构 x̂ → 预测 y
 
 实际预测新客户时，分类器直接使用原始客户特征：
 
-$
+$$
 \boxed{x\rightarrow q_\phi(y\mid x)}
-$
+$$
 
 不需要先经过编码器或解码器。编码器、类别条件先验和解码器主要在训练阶段帮助模型利用有标签与无标签数据。
 
