@@ -2,6 +2,13 @@
 
 这里记录我在应用统计、机器学习与论文复现过程中的学习内容。
 
+## 阅读笔记目录
+
+- [Reject Inference Methods in Credit Scoring：论文精读与理解笔记](notes/reject-inference-methods-in-credit-scoring.md)（2026-11-01）：缺失机制、EM 推导、六种拒绝推断方法、实验与 Gini，以及精读问答和理解校正。
+- 本页下方保留 **Deep Generative Models for Reject Inference in Credit Scoring** 的阅读与代码复现笔记。
+
+---
+
 ## 当前精读论文
 
 **Deep Generative Models for Reject Inference in Credit Scoring**
