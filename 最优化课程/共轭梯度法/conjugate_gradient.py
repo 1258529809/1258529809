@@ -37,6 +37,33 @@ def conjugate_gradient(A, b, x0, tol=1e-4, max_iter=None):
     raise RuntimeError("达到最大迭代次数，尚未满足精度要求")
 
 
+# 新增块：最速下降法（精确线搜索）
+def steepest_descent(A, b, x0, tol=1e-4, max_iter=10000):
+    A = np.asarray(A, dtype=float)
+    b = np.asarray(b, dtype=float)
+    x = np.array(x0, dtype=float, copy=True)
+    if b.ndim != 1 or x.shape != b.shape or A.shape != (b.size, b.size):
+        raise ValueError("A、b、x0 维度不匹配")
+    if not all(np.isfinite(v).all() for v in (A, b, x)):
+        raise ValueError("输入必须为有限数值")
+    if not np.allclose(A, A.T):
+        raise ValueError("A 必须对称")
+    np.linalg.cholesky(A)
+    if tol <= 0:
+        raise ValueError("tol 必须为正数")
+    for k in range(max_iter + 1):
+        g = A @ x - b
+        print(f"k={k:2d}, x={x}, ||g||={np.linalg.norm(g):.6e}")
+        if np.linalg.norm(g) <= tol:
+            return x, k
+        if k == max_iter:
+            break
+        # 每次都沿当前负梯度，不保留上一轮搜索方向。
+        alpha = (g @ g) / (g @ (A @ g))
+        x = x - alpha * g
+    raise RuntimeError("最速下降法达到最大迭代次数，尚未满足精度要求")
+
+
 if __name__ == "__main__":
     examples = [
         ([[4, 1], [1, 3]], [1, 2], [0, 0]),
@@ -51,3 +78,24 @@ if __name__ == "__main__":
         assert np.allclose(x, reference, atol=1e-8)
         print(f"结果：{x}；迭代次数：{steps}")
         print(f"直接解对照：{reference}")
+
+    # 新增块：相同初始点、精度和最大次数下对比两种方法。
+    print("\n========== 最速下降法与共轭梯度法对比 ==========")
+    tol = 1e-4
+    summary = []
+    for i, (A, b, x0) in enumerate(examples, 1):
+        A = np.asarray(A, dtype=float)
+        b = np.asarray(b, dtype=float)
+        reference = np.linalg.solve(A, b)
+        for name, solver in [("最速下降法", steepest_descent),
+                             ("共轭梯度法", conjugate_gradient)]:
+            print(f"\n例 {i}：{name}")
+            x, steps = solver(A, b, x0, tol=tol, max_iter=10000)
+            gradient_norm = np.linalg.norm(A @ x - b)
+            error = np.linalg.norm(x - reference)
+            value = 0.5 * x @ A @ x - b @ x
+            assert gradient_norm <= tol
+            summary.append((i, name, steps, gradient_norm, error, value))
+    print("\n例题 | 方法 | 迭代次数 | 梯度范数 | 解误差 | 目标函数值")
+    for i, name, steps, norm, error, value in summary:
+        print(f"{i} | {name} | {steps} | {norm:.3e} | {error:.3e} | {value:.8f}")
